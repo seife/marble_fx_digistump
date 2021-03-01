@@ -29,13 +29,13 @@
  *   press red button to emulate wheel movement with the ball
  */
 
-#include "Mouse.h"
+#include <DigiMouse.h>
 
 /*
  * Pin definitions
  */
-#define DATA_PIN 2
-#define CLK_PIN  3
+#define DATA_PIN 0
+#define CLK_PIN  2
 
 /* global variables */
 bool redbutton = false;
@@ -196,7 +196,7 @@ void setup()
 {
   mouse_init();
   ps2pp_write_magic_ping();
-  Mouse.begin();
+  DigiMouse.begin();
 }
 
 long last_move = 0;
@@ -204,7 +204,7 @@ int jigglecount = 0;
 
 void move(int8_t x, int8_t y, int8_t z)
 {
-  Mouse.move(x, y, z);
+  DigiMouse.move(x, y, z);
   last_move = millis();
   jigglecount = 0;
 }
@@ -216,8 +216,8 @@ void loop()
   uint8_t mstat = mouse_read();
   int8_t mx    = (int8_t)mouse_read();
   int8_t my    = (int8_t)mouse_read();
-  if (!ps2pp_decode(mstat, mx, my) &&
-      !USBDevice.isSuspended()) {
+
+  if (!ps2pp_decode(mstat, mx, my)) {
     if (redbutton) { /* translate y scroll into wheel-scroll */
       int8_t scroll = my / 8;
       if (! scroll) {
@@ -238,6 +238,7 @@ void loop()
 
     /* handle normal buttons */
     long now = millis();
+    uint8_t btn = 0;
     for (uint8_t i = 0; i < sizeof(buttons); i++) {
       bool button = mstat & bmask[i];
       /* debounce - my marble fx has a nervous right-click syndrome ;-) */
@@ -246,20 +247,18 @@ void loop()
           continue;
         lastchange[i] = now;
       }
-      if (!buttons[i] && button)
-        Mouse.press(bmask[i]);
-      else if (buttons[i] && !button)
-        Mouse.release(bmask[i]);
-      buttons[i] = button;
+      if (button)
+        btn |= bmask[i];
     }
+    DigiMouse.setButtons(btn);
   }
 
   long  jiggle = (millis() - last_move);
   if (jiggle > 30000L * (jigglecount + 1) && jiggle < 1800000) {
     jigglecount++;
-    if (!USBDevice.isSuspended()) {
-      Mouse.move(0,0,0);
-    }
+    DigiMouse.move(1, 1, 0);
+    DigiMouse.update();
+    DigiMouse.move(-1, -1, 0);
   }
-  delay(20);
+  DigiMouse.delay(20);
 }
