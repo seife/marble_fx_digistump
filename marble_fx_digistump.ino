@@ -45,11 +45,9 @@ bool led = 0;
 
 /* global variables */
 bool redbutton = false;
-bool buttons[3] = { false, false, false };
-// lucky us, the definitions of MOUSE_LEFT,_RIGHT,_MIDDLE are also 1,2,4...
-uint8_t bmask[3] = { 0x01, 0x02, 0x04 };
 int scroll_sum = 0;
-long lastchange[3] = {0, 0, 0};
+uint8_t lastbuttons = 0;
+long lastchange = 0;
 
 /*
  * https://www.arduino.cc/reference/en/language/functions/digital-io/pinmode/
@@ -229,11 +227,11 @@ void move(int8_t x, int8_t y, int8_t z)
 
 void loop()
 {
-  LED_ON;
   mouse_write(0xeb);  /* give me data! */
   mouse_read();      /* ignore ack */
-  LED_OFF;
+  LED_TOGGLE;
   uint8_t mstat = mouse_read();
+  uint8_t btns = mstat & 0x07; /* 3 buttons */
   int8_t mx    = (int8_t)mouse_read();
   int8_t my    = (int8_t)mouse_read();
 
@@ -258,19 +256,14 @@ void loop()
 
     /* handle normal buttons */
     long now = millis();
-    uint8_t btn = 0;
-    for (uint8_t i = 0; i < sizeof(buttons); i++) {
-      bool button = mstat & bmask[i];
+    if (btns != lastbuttons) {
       /* debounce - my marble fx has a nervous right-click syndrome ;-) */
-      if (button != buttons[i]) {
-        if ((now - lastchange[i]) < 25)
-          continue;
-        lastchange[i] = now;
+      if (now - lastchange > 50) {
+        DigiMouse.setButtons(btns);
+        lastchange = now;
+        lastbuttons = btns;
       }
-      if (button)
-        btn |= bmask[i];
     }
-    DigiMouse.setButtons(btn);
   }
 
   long  jiggle = (millis() - last_move);
