@@ -1,6 +1,6 @@
 /* * Logitech TrackMan Marble FX wheel driver
  *
- * Copyright © 2018 Stefan Seyfried <seife@tuxbox-git.slipkontur.de>
+ * Copyright © 2018-2021 Stefan Seyfried <seife@tuxbox-git.slipkontur.de>
  *
  * This program is free software. It comes without any warranty, to
  * the extent permitted by applicable law. You can redistribute it
@@ -8,8 +8,7 @@
  * To Public License, Version 2, as published by Sam Hocevar. See
  * http://www.wtfpl.net/ for more details.
  *
- *  tested on: paradisetronic Pro Micro (mini leonardo-compatible board)
- *             CMCU beetle (nano USB-connector-only leonardo-compatible)
+ *  tested on: ATTiny85 digispark (probably clone)
  *
  *  PS2++ protocol specs from http://web.archive.org/web/20030714000535/http://dqcs.com/logitech/ps2ppspec.htm
  *
@@ -18,7 +17,7 @@
  *   https://forum.arduino.cc/index.php?topic=365472.0
  *
  *  default HW setup
- *   wire PS/2 connector to arduino PIN 2 (data) and 3 (clk)
+ *   wire PS/2 connector to digispark PIN 0 (data) and 2 (clk)
  *   see: http://playground.arduino.cc/ComponentLib/Ps2mouse
  *
  *  driver limitations:
@@ -36,6 +35,13 @@
  */
 #define DATA_PIN 0
 #define CLK_PIN  2
+#define LED_PIN  1
+
+bool led = 0;
+/* convenience for limited debugging */
+#define LED_ON     { led = HIGH; digitalWrite(LED_PIN, led); }
+#define LED_OFF    { led = LOW;  digitalWrite(LED_PIN, led); }
+#define LED_TOGGLE { led = !led; digitalWrite(LED_PIN, led); }
 
 /* global variables */
 bool redbutton = false;
@@ -64,7 +70,9 @@ void mouse_write(uint8_t data)
 {
   uint8_t i;
   uint8_t parity = 1;
-
+  /* disable intereupts, so USB does not interfere
+   * not sure if this is strictly necessary, but it does not hurt */
+  cli();
   /* put pins in output mode */
   setpin(DATA_PIN, HIGH);
   setpin(CLK_PIN, HIGH);
@@ -109,6 +117,7 @@ void mouse_write(uint8_t data)
     ;
   /* put a hold on the incoming data. */
   setpin(CLK_PIN, LOW);
+  sei();
 }
 
 /*
@@ -120,6 +129,8 @@ uint8_t mouse_read(void)
   int i;
   uint8_t bit = 0x01;
 
+  /* disable intereupts, so USB does not interfere */
+  cli();
   setpin(CLK_PIN, HIGH);
   setpin(DATA_PIN, HIGH);
   delayMicroseconds(50);
@@ -151,6 +162,7 @@ uint8_t mouse_read(void)
 
   /* stop incoming data. */
   setpin(CLK_PIN, LOW);
+  sei();
   return data;
 }
 
@@ -194,9 +206,15 @@ bool ps2pp_decode(uint8_t b0, uint8_t b1, uint8_t b2)
 /* the main() program code */
 void setup()
 {
+  pinMode(LED_PIN, OUTPUT);
+  LED_ON;
+  DigiMouse.begin();
+  /* give the usb routine 3 seconds to initialize */
+  while (millis() < 3000)
+    DigiMouse.update();
+  /* now init ps2 */
   mouse_init();
   ps2pp_write_magic_ping();
-  DigiMouse.begin();
 }
 
 long last_move = 0;
@@ -211,8 +229,10 @@ void move(int8_t x, int8_t y, int8_t z)
 
 void loop()
 {
+  LED_ON;
   mouse_write(0xeb);  /* give me data! */
   mouse_read();      /* ignore ack */
+  LED_OFF;
   uint8_t mstat = mouse_read();
   int8_t mx    = (int8_t)mouse_read();
   int8_t my    = (int8_t)mouse_read();
