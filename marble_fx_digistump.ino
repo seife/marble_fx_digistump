@@ -204,11 +204,14 @@ bool ps2pp_decode(uint8_t b0, uint8_t b1, uint8_t b2)
 /* the main() program code */
 void setup()
 {
+  wdt_enable(WDTO_4S);
   pinMode(LED_PIN, OUTPUT);
   LED_ON;
   /* now init ps2 */
   mouse_init();
+  LED_OFF;
   ps2pp_write_magic_ping();
+  LED_ON;
   DigiMouse.begin();
 }
 
@@ -224,11 +227,13 @@ void move(int8_t x, int8_t y, int8_t z)
 
 void loop()
 {
+  wdt_reset();
   LED_ON;
   while(usbInterruptIsReady() != 0x10)
     DigiMouse.poll();
   mouse_write(0xeb);  /* give me data! */
   LED_OFF;
+  wdt_reset();
   mouse_read();      /* ignore ack */
   uint8_t mstat = mouse_read();
   uint8_t btns = mstat & 0x07; /* 3 buttons */
