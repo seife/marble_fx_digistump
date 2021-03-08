@@ -210,9 +210,6 @@ void setup()
   mouse_init();
   ps2pp_write_magic_ping();
   DigiMouse.begin();
-  /* give the usb routine 3 seconds to initialize */
-  while (millis() < 3000)
-    DigiMouse.update();
 }
 
 long last_move = 0;
@@ -227,9 +224,12 @@ void move(int8_t x, int8_t y, int8_t z)
 
 void loop()
 {
+  LED_ON;
+  while(usbInterruptIsReady() != 0x10)
+    DigiMouse.poll();
   mouse_write(0xeb);  /* give me data! */
+  LED_OFF;
   mouse_read();      /* ignore ack */
-  LED_TOGGLE;
   uint8_t mstat = mouse_read();
   uint8_t btns = mstat & 0x07; /* 3 buttons */
   int8_t mx    = (int8_t)mouse_read();
