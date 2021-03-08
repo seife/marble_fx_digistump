@@ -206,13 +206,13 @@ void setup()
 {
   pinMode(LED_PIN, OUTPUT);
   LED_ON;
+  /* now init ps2 */
+  mouse_init();
+  ps2pp_write_magic_ping();
   DigiMouse.begin();
   /* give the usb routine 3 seconds to initialize */
   while (millis() < 3000)
     DigiMouse.update();
-  /* now init ps2 */
-  mouse_init();
-  ps2pp_write_magic_ping();
 }
 
 long last_move = 0;
