@@ -16,6 +16,11 @@
  *   Arduino Forum > Topics > Device Hacking > Logitech TrackMan Marble FX USB converter
  *   https://forum.arduino.cc/index.php?topic=365472.0
  *
+ * Original implementation was done on a "CJMCU Beetle" mini-Arduino
+ *   Leonardo (ATMega32u4) board, but it works as well on a ATTiny85 board.
+ *   See https://github.com/seife/marble_fx. This is the successor with even
+ *   cheaper hardware :-)
+ *
  *  default HW setup
  *   wire PS/2 connector to digispark PIN 0 (data) and 2 (clk)
  *   see: http://playground.arduino.cc/ComponentLib/Ps2mouse
@@ -206,10 +211,13 @@ bool ps2pp_decode(uint8_t b0, uint8_t b1, uint8_t b2)
 /* the main() program code */
 void setup()
 {
+  /* enable the watchdog, so that we will notice if the host suspends:
+     If the USB bus does not answer, usbInterruptIsReady() will fail
+     and the endless loop waiting for it to clear will reset the board */
   wdt_enable(WDTO_4S);
   pinMode(LED_PIN, OUTPUT);
   LED_ON;
-  /* now init ps2 */
+  /* now init ps2. If there is no mouse, then this will hang forever => reset */
   mouse_init();
   LED_OFF;
   ps2pp_write_magic_ping();
