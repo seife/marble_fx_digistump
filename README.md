@@ -5,7 +5,7 @@ This works well on Linux, but only if the trackball is connected via a native PS
 
 If a simple PS/2 <-> USB converter is used, the trackball operates in "legacy" 3-button Mouse mode, because those converters do not know how to switch and interpret the logitech protocol.
 
-This project uses an Arduino Leonardo (or compatible boards, like the CMCU Beetle) to interface the TrackmanFX's PS/2 port to USB HID.
+This project uses a Digispark ATTiny85 to interface the TrackmanFX's PS/2 port to USB HID.
 
 The smallest boards can be integrated directly into the trackball, so that the TrackmanFX appears as a "native" USB device.
 

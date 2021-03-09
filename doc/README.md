@@ -1,5 +1,5 @@
 # How I modified my MarbleFX
-I used a CJMCU Beetle board, because the integrated USB plug makes it very easy to solder the USB cable due to the large pin spacing.
+These are pictures of the first version that used a CJMCU Beetle board with an Atmega32u4 chip. The Digispark ATTiny85 is very similar in its form factor (but cheaper), so I keep these pictures here for reference. The integrated USB plug of the Digispark makes it very easy to solder the USB cable due to the large pin spacing. There are also Digispark clones with micro-USB socket, but these are harder to solder due to narrow spacing of the pins and using a "normal" micro-USB cable inside the MarbleFX is not possible due to space constraints.
 
 ## This is the MarbleFX before modification:
 ![The unmodified MarbleFX](01-marble_fx-original.jpg)
@@ -27,4 +27,4 @@ I used a connector from a Logitech USB mouse cable, so that I did not need to cu
 ![Mounted](10-marble_fx-beetle-mounted.jpg)
 The Beetle is kept in place by the daughter board.
 
-The additional blue and black cables are RESET and GND, stored below the bottom plate, so that reflashing is easier by triggering a board reset, even if the ACM interface has been patched out of the USB core.
+The additional blue and black cables are RESET and GND, stored below the bottom plate, to allow reflashing of the ATMega32u4 even with ACM interface patched out of the USB core.
