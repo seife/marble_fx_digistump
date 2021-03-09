@@ -29,6 +29,8 @@
  */
 
 #include <DigiMouse.h>
+/* from usbdrv.h, updated in the asm interrupt routine */
+extern volatile schar usbRxLen;
 
 /*
  * Pin definitions
@@ -213,6 +215,11 @@ void setup()
   ps2pp_write_magic_ping();
   LED_ON;
   DigiMouse.begin();
+  /* wait until it's initialized... */
+  while(usbRxLen <= 0) {
+    digitalWrite(LED_PIN, !(millis()&0x3ff));
+    wdt_reset();
+  }
 }
 
 long last_move = 0;
@@ -229,7 +236,8 @@ void loop()
 {
   wdt_reset();
   LED_ON;
-  while(usbInterruptIsReady() != 0x10)
+  /* this will trigger the watchdog, if the host is suspended */
+  while(!usbInterruptIsReady())
     DigiMouse.poll();
   mouse_write(0xeb);  /* give me data! */
   LED_OFF;
