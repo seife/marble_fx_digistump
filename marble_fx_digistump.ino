@@ -239,8 +239,8 @@ void loop()
   /* this will trigger the watchdog, if the host is suspended */
   while(!usbInterruptIsReady())
     DigiMouse.poll();
-  mouse_write(0xeb);  /* give me data! */
   LED_OFF;
+  mouse_write(0xeb);  /* give me data! */
   wdt_reset();
   mouse_read();      /* ignore ack */
   uint8_t mstat = mouse_read();
