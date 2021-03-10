@@ -33,7 +33,12 @@
  *   press red button to emulate wheel movement with the ball
  */
 
+#ifndef USE_OWN_USBMOUSE
 #include <DigiMouse.h>
+#else
+#include "Mouse.h"
+#endif
+
 /* from usbdrv.h, updated in the asm interrupt routine */
 extern volatile schar usbRxLen;
 
