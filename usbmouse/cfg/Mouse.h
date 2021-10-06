@@ -42,8 +42,13 @@ static unsigned char last_sent_report[REPORT_SIZE];
 
 uchar		 reportBuffer[REPORT_SIZE];
 
-// report frequency set to default of 50hz
-#define DIGIMOUSE_DEFAULT_REPORT_INTERVAL 20
+/*
+ * https://www.usb.org/sites/default/files/hid1_11.pdf 7.2.4, "remarks":
+ * The recommended default idle rate (rate when the device is initialized)
+ * is 500 milliseconds for keyboards (delay before first repeat rate) and
+ * infinity for joysticks and mice. => 0 == infinity.
+ */
+#define DIGIMOUSE_DEFAULT_REPORT_INTERVAL 0
 static unsigned char must_report = 0;
 static unsigned char idle_rate = DIGIMOUSE_DEFAULT_REPORT_INTERVAL / 4; // in units of 4ms
 // new minimum report frequency system:
