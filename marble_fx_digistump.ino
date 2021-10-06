@@ -82,13 +82,13 @@ void mouse_write(uint8_t data)
   uint8_t parity = 1;
   /* disable intereupts, so USB does not interfere
    * not sure if this is strictly necessary, but it does not hurt */
-  cli();
   /* put pins in output mode */
   setpin(DATA_PIN, HIGH);
   setpin(CLK_PIN, HIGH);
   delayMicroseconds(300);
+  cli();
   setpin(CLK_PIN, LOW);
-  delayMicroseconds(300);
+  delayMicroseconds(100);
   setpin(DATA_PIN, LOW);
   delayMicroseconds(10);
   /* start bit */
@@ -140,10 +140,10 @@ uint8_t mouse_read(void)
   uint8_t bit = 0x01;
 
   /* disable intereupts, so USB does not interfere */
-  cli();
   setpin(CLK_PIN, HIGH);
   setpin(DATA_PIN, HIGH);
   delayMicroseconds(50);
+  cli();
   while (digitalRead(CLK_PIN) == HIGH)
     ;
   delayMicroseconds(5);               /* debounce */
@@ -219,13 +219,9 @@ void setup()
   /* enable the watchdog, so that we will notice if the host suspends:
      If the USB bus does not answer, usbInterruptIsReady() will fail
      and the endless loop waiting for it to clear will reset the board */
+  wdt_disable();
   wdt_enable(WDTO_4S);
   pinMode(LED_PIN, OUTPUT);
-  LED_ON;
-  /* now init ps2. If there is no mouse, then this will hang forever => reset */
-  mouse_init();
-  LED_OFF;
-  ps2pp_write_magic_ping();
   LED_ON;
   DigiMouse.begin();
   /* wait until it's initialized... */
@@ -233,6 +229,19 @@ void setup()
     digitalWrite(LED_PIN, !(millis()&0x3ff));
     wdt_reset();
   }
+  LED_ON;
+  DigiMouse.delay(1000);
+  wdt_reset();
+  LED_OFF
+  /* now init ps2. If there is no mouse, then this will hang forever => reset */
+  mouse_init();
+  DigiMouse.poll();
+  wdt_reset();
+  LED_OFF;
+  ps2pp_write_magic_ping();
+  DigiMouse.poll();
+  wdt_reset();
+  LED_ON;
 }
 
 long last_move = 0;
