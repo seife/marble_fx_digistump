@@ -1,3 +1,6 @@
+# This project is cancelled for now
+Note that I was finally not able to get this reliably working, especially with Windows 10 hosts and newer, I was always getting into trouble with reinitialization issues after resume from sleep or just synchronization issues due to the very tight timing dependencies of the software USB stack and also the PS/2 mouse reading code. I finally gave up and went back to improving [https://github.com/seife/marble_fx](https://github.com/seife/marble_fx) which is using an ATMega32u4 (Arduino Leonardo) to do the same thing and which works much more reliable for me. This alternate project is also (sort of...) maintained.
+
 # USB converter for Trackman MarbleFX
 The famous Logitech Trackman MarbleFX trackball has four buttons, of which the 4th (red) button was used to emulate a scroll wheel.
 To enable this, the trackball needs to be switched into a special Logitech PS/2 protocol, which enables the reporting of the additional button.
